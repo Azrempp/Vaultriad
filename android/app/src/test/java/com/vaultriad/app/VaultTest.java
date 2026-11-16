@@ -51,7 +51,7 @@ public class VaultTest {
       );
       Path file = Path.of("build/reports/android-portable.vtbackup");
       Files.createDirectories(file.getParent());
-      Files.writeString(file, sealed);
+      Files.write(file, sealed.getBytes(StandardCharsets.UTF_8));
     } finally {
       Arrays.fill(key, (byte) 0);
     }
