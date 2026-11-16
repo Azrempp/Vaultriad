@@ -22,6 +22,8 @@ Debug application ID ends in `.debug` and its instrumented tests refuse to wipe 
 
 For repeatable signed releases, create and privately back up a release keystore with alias `vaultriad`, and provide `ANDROID_KEYSTORE_PATH` / `ANDROID_KEYSTORE_PASSWORD` to Gradle. GitHub's Android APK workflow supports repository secrets `ANDROID_KEYSTORE_BASE64` and `ANDROID_KEYSTORE_PASSWORD`; neither belongs in source control. When those secrets are absent, CI stages an unsigned APK in a maintainer-only draft for local signing. It never publishes that unsigned APK as the installable release.
 
+For local signing handoff, the **Publish locally signed Android APK** workflow accepts a Git blob containing the signed APK, its expected hash, and the successful native build run/source commit. It verifies the signing certificate against `android/SIGNING-CERT-SHA256.txt`, compares application contents to the native-tested unsigned APK (allowing only signing metadata), checks the offline manifest/license, and publishes the verified APK. No private key is sent through that workflow. Forks must replace the certificate fingerprint with their own when adopting a new application ID and signing key.
+
 If the connected integration cannot write repository secrets, a maintainer must add them in GitHub Settings → Secrets and variables → Actions. Local signing keys and passwords must be backed up privately before discarding the development workspace. Keep the same key for updates; a lost release key is not recoverable from an APK. Increment `versionCode` for every update. Fork distributors must use their own key/application ID and preserve MIT/dependency notices.
 
 ## Vaults and recovery
