@@ -6,7 +6,7 @@ Vaultriad is an early preview without an independent security audit. The README 
 
 If GitHub private vulnerability reporting is enabled, use this repository's **Security → Report a vulnerability** flow:
 
-https://github.com/Azrempp/Vaultriad/security/advisories/new
+https://github.com/felixzax/Vaultriad/security/advisories/new
 
 If that option is unavailable, open an issue asking the maintainer for a private reporting channel, without publishing the vulnerability details. Do not post exploit instructions for an unpatched credential bypass in a public issue.
 

@@ -8,7 +8,7 @@ A local-first desktop password manager for hardware, online accounts, and API ke
 
 You can use, inspect, modify, fork and redistribute Vaultriad under the [MIT license](LICENSE), including commercially, while keeping the required license notices. There are no paid vault features, mandatory online accounts or hosted backend. Dependencies keep their own licenses; public source does not mean the app has passed an independent security audit.
 
-- [Fork this project](https://github.com/Azrempp/Vaultriad/fork)
+- [Fork this project](https://github.com/felixzax/Vaultriad/fork)
 - [Build and distribute a fork](FORKING.md)
 - [Contribute changes](CONTRIBUTING.md)
 - [Report security issues privately](SECURITY.md)
@@ -19,8 +19,8 @@ The app's MIT license is bundled with installers as `resources/LICENSE-Vaultriad
 
 | Platform | Installer | Release |
 | --- | --- | --- |
-| Windows x64 (Intel / AMD) | [Vaultriad-Setup.exe](https://github.com/Azrempp/Vaultriad/releases/download/v1.0.0-windows-preview/Vaultriad-Setup.exe) | [Windows preview](https://github.com/Azrempp/Vaultriad/releases/tag/v1.0.0-windows-preview) |
-| macOS (Apple silicon + Intel) | [Vaultriad.dmg](https://github.com/Azrempp/Vaultriad/releases/download/v1.0.0-macos-preview/Vaultriad.dmg) | [macOS preview](https://github.com/Azrempp/Vaultriad/releases/tag/v1.0.0-macos-preview) |
+| Windows x64 (Intel / AMD) | [Vaultriad-Setup.exe](https://github.com/felixzax/Vaultriad/releases/download/v1.0.0-windows-preview/Vaultriad-Setup.exe) | [Windows preview](https://github.com/felixzax/Vaultriad/releases/tag/v1.0.0-windows-preview) |
+| macOS (Apple silicon + Intel) | [Vaultriad.dmg](https://github.com/felixzax/Vaultriad/releases/download/v1.0.0-macos-preview/Vaultriad.dmg) | [macOS preview](https://github.com/felixzax/Vaultriad/releases/tag/v1.0.0-macos-preview) |
 
 Release assets include SHA-256 checksums. Installers are also retained temporarily as Actions artifacts; the release links above do not have that 14-day artifact expiry.
 
@@ -30,7 +30,7 @@ Download and run **Vaultriad-Setup.exe**. This is the Windows x64 build for Inte
 
 ### macOS
 
-Download [Vaultriad.dmg](https://github.com/Azrempp/Vaultriad/releases/download/v1.0.0-macos-preview/Vaultriad.dmg) from the [macOS preview release](https://github.com/Azrempp/Vaultriad/releases/tag/v1.0.0-macos-preview). The universal app supports Apple silicon and Intel Macs. Open the DMG and drag Vaultriad to Applications. The release includes a SHA-256 checksum.
+Download [Vaultriad.dmg](https://github.com/felixzax/Vaultriad/releases/download/v1.0.0-macos-preview/Vaultriad.dmg) from the [macOS preview release](https://github.com/felixzax/Vaultriad/releases/tag/v1.0.0-macos-preview). The universal app supports Apple silicon and Intel Macs. Open the DMG and drag Vaultriad to Applications. The release includes a SHA-256 checksum.
 
 The preview is ad-hoc signed, without an Apple Developer ID or Apple notarization; Gatekeeper may block or warn about it. The **macOS DMG** GitHub Actions workflow builds on macOS, runs the tests, verifies the disk image, app signature and both CPU architectures, and publishes the downloadable DMG. It can be rerun from Actions → macOS DMG → Run workflow.
 

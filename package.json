@@ -95,10 +95,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Azrempp/Vaultriad.git"
+    "url": "https://github.com/felixzax/Vaultriad.git"
   },
-  "homepage": "https://github.com/Azrempp/Vaultriad#readme",
+  "homepage": "https://github.com/felixzax/Vaultriad#readme",
   "bugs": {
-    "url": "https://github.com/Azrempp/Vaultriad/issues"
+    "url": "https://github.com/felixzax/Vaultriad/issues"
   }
 }
