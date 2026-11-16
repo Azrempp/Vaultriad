@@ -1,0 +1,5 @@
+<resources>
+    <item name="password" type="id"/><item name="confirm_password" type="id"/><item name="pin" type="id"/>
+    <item name="entry_name" type="id"/><item name="secret" type="id"/><item name="confirm_secret" type="id"/>
+    <item name="search" type="id"/><item name="create_vault" type="id"/>
+</resources>

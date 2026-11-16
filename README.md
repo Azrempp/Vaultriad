@@ -19,10 +19,15 @@ The app's MIT license is bundled with installers as `resources/LICENSE-Vaultriad
 
 | Platform | Installer | Release |
 | --- | --- | --- |
+| Android 11+ | [Vaultriad.apk](https://github.com/felixzax/Vaultriad/releases/download/v1.0.0-android-preview/Vaultriad.apk) | [Android preview](https://github.com/felixzax/Vaultriad/releases/tag/v1.0.0-android-preview) |
 | Windows x64 (Intel / AMD) | [Vaultriad-Setup.exe](https://github.com/felixzax/Vaultriad/releases/download/v1.0.0-windows-preview/Vaultriad-Setup.exe) | [Windows preview](https://github.com/felixzax/Vaultriad/releases/tag/v1.0.0-windows-preview) |
 | macOS (Apple silicon + Intel) | [Vaultriad.dmg](https://github.com/felixzax/Vaultriad/releases/download/v1.0.0-macos-preview/Vaultriad.dmg) | [macOS preview](https://github.com/felixzax/Vaultriad/releases/tag/v1.0.0-macos-preview) |
 
 Release assets include SHA-256 checksums. Installers are also retained temporarily as Actions artifacts; the release links above do not have that 14-day artifact expiry.
+
+### Android
+
+The native [Android app](android/README.md) supports Android 11+, local encrypted vaults, portable desktop backups, Current/Past/Pending changes, generation, locking and optional Android strong biometrics. It has no Internet permission. Download the signed APK above. Keep off-phone encrypted backups before uninstalling. Mobile preview feature differences and signing/update-key requirements are documented in android/README.md.
 
 ### Windows
 

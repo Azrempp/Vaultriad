@@ -1,0 +1,45 @@
+plugins { id 'com.android.application' }
+android {
+    namespace 'com.vaultriad.app'
+    compileSdk 35
+    defaultConfig {
+        applicationId 'com.vaultriad.app'
+        minSdk 30
+        targetSdk 35
+        versionCode 1
+        versionName '1.0.0'
+        multiDexEnabled true
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+    }
+    signingConfigs {
+        release {
+            if (System.getenv('ANDROID_KEYSTORE_PATH')) {
+                storeFile file(System.getenv('ANDROID_KEYSTORE_PATH'))
+                storePassword System.getenv('ANDROID_KEYSTORE_PASSWORD')
+                keyAlias 'vaultriad'
+                keyPassword System.getenv('ANDROID_KEYSTORE_PASSWORD')
+            }
+        }
+    }
+    buildTypes {
+        debug { applicationIdSuffix '.debug' }
+        release {
+            minifyEnabled false
+            if (System.getenv('ANDROID_KEYSTORE_PATH')) signingConfig signingConfigs.release
+        }
+    }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+    packaging { resources.excludes += ['META-INF/versions/9/OSGI-INF/MANIFEST.MF'] }
+    testOptions { animationsDisabled true; unitTests.all { workingDir project.projectDir } }
+}
+dependencies {
+    implementation 'org.bouncycastle:bcprov-jdk18on:1.87'
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.json:json:20250517'
+    androidTestImplementation 'androidx.test:runner:1.6.2'
+    androidTestImplementation 'androidx.test:rules:1.6.1'
+    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
+}
+
+dependencies { androidTestImplementation 'androidx.test.uiautomator:uiautomator:2.3.0' }
