@@ -15,6 +15,11 @@ const os = vi.hoisted(() => ({
   clipboard: "",
   openFile: "",
   saveFile: "",
+  encryption: false,
+  touchID: false,
+  cancelBiometric: false,
+  biometricPrompts: 0,
+  onBiometricPrompt: null as (() => void) | null,
 }));
 vi.mock("electron", () => ({
   app: { getPath: (kind: string) => join(os.root, kind) },
@@ -28,10 +33,21 @@ vi.mock("electron", () => ({
     },
   },
   safeStorage: {
-    isEncryptionAvailable: () => false,
+    isEncryptionAvailable: () => os.encryption,
+    // Mock OS wrapping only; production uses Electron safeStorage.
+    encryptString: (value: string) => Buffer.from("test-wrapped:" + value),
+    decryptString: (value: Buffer) =>
+      value.toString().slice("test-wrapped:".length),
     getSelectedStorageBackend: () => "basic_text",
   },
-  systemPreferences: { canPromptTouchID: () => false },
+  systemPreferences: {
+    canPromptTouchID: () => os.touchID,
+    promptTouchID: async () => {
+      os.biometricPrompts++;
+      os.onBiometricPrompt?.();
+      if (os.cancelBiometric) throw Error("Cancelled");
+    },
+  },
   dialog: {
     showOpenDialog: async () => ({
       canceled: !os.openFile,
@@ -88,6 +104,11 @@ beforeEach(async () => {
   os.clipboard = "";
   os.openFile = "";
   os.saveFile = "";
+  os.encryption = false;
+  os.touchID = false;
+  os.cancelBiometric = false;
+  os.biometricPrompts = 0;
+  os.onBiometricPrompt = null;
   service = new VaultService(() => {});
   await service.init();
 });
@@ -285,3 +306,74 @@ describe("main-process vault lifecycle", () => {
     expect(service.status().unlocked).toBe(false);
   });
 });
+
+async function asMac(action: () => Promise<void>) {
+  const original = Object.getOwnPropertyDescriptor(process, "platform")!;
+  Object.defineProperty(process, "platform", { ...original, value: "darwin" });
+  try {
+    await action();
+  } finally {
+    service.lock();
+    Object.defineProperty(process, "platform", original);
+  }
+}
+describe("Touch ID with simulated OS keychain and biometrics", () => {
+  it("is opt-in, verifies credentials, unlocks with biometrics, and can be disabled", async () =>
+    asMac(async () => {
+      os.encryption = true;
+      os.touchID = true;
+      await setup();
+      expect(service.status().quickUnlock).toBe(false);
+      await service.execute({ type: "enableQuickUnlock", credentials });
+      expect(os.biometricPrompts).toBe(1);
+      expect(service.status().quickUnlock).toBe(true);
+      service.lock();
+      expect(service.status().unlocked).toBe(false);
+      const vault = (await service.execute({ type: "quickUnlock" })) as Vault;
+      expect(vault.version).toBe(1);
+      expect(service.status().unlocked).toBe(true);
+      expect(os.biometricPrompts).toBe(2);
+      await service.execute({ type: "disableQuickUnlock" });
+      expect(service.status().quickUnlock).toBe(false);
+    }));
+  it("does not wrap a key or prompt for biometrics with wrong original credentials", async () =>
+    asMac(async () => {
+      os.encryption = true;
+      os.touchID = true;
+      await setup();
+      await expect(
+        service.execute({
+          type: "enableQuickUnlock",
+          credentials: { ...credentials, pin: "000000" },
+        }),
+      ).rejects.toThrow(/verification/);
+      expect(os.biometricPrompts).toBe(0);
+      expect(service.status().quickUnlock).toBe(false);
+    }));
+  it("keeps the vault locked after a cancelled biometric unlock", async () =>
+    asMac(async () => {
+      os.encryption = true;
+      os.touchID = true;
+      await setup();
+      await service.execute({ type: "enableQuickUnlock", credentials });
+      service.lock();
+      os.cancelBiometric = true;
+      await expect(service.execute({ type: "quickUnlock" })).rejects.toThrow(
+        /unavailable or cancelled/,
+      );
+      expect(service.status().unlocked).toBe(false);
+    }));
+});
+
+it("does not enable Touch ID if locking interrupts biometric verification", async () =>
+  asMac(async () => {
+    os.encryption = true;
+    os.touchID = true;
+    await setup();
+    os.onBiometricPrompt = () => service.lock();
+    await expect(
+      service.execute({ type: "enableQuickUnlock", credentials }),
+    ).rejects.toThrow(/verification/);
+    expect(service.status().unlocked).toBe(false);
+    expect(service.status().quickUnlock).toBe(false);
+  }));

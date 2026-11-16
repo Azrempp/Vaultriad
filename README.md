@@ -2,6 +2,14 @@
 
 A local-first desktop password manager for hardware, online accounts, and API keys. Vaultriad keeps a single encrypted vault on your device and makes password changes a deliberate two-step process: **Pending → “It worked, make it Current.”** The previous Current moves to Past only after confirmation.
 
+## macOS download
+
+Download [Vaultriad.dmg](https://github.com/Azrempp/Vaultriad/releases/download/v1.0.0-macos-preview/Vaultriad.dmg) from the [macOS preview release](https://github.com/Azrempp/Vaultriad/releases/tag/v1.0.0-macos-preview). The universal app supports Apple silicon and Intel Macs. Open the DMG and drag Vaultriad to Applications. The release includes a SHA-256 checksum.
+
+The preview is ad-hoc signed, without an Apple Developer ID or Apple notarization; Gatekeeper may block or warn about it. The **macOS DMG** GitHub Actions workflow builds on macOS, runs the tests, verifies the disk image, app signature and both CPU architectures, and publishes the downloadable DMG. It can be rerun from Actions → macOS DMG → Run workflow.
+
+Touch ID is optional and requires a compatible Mac with enrolled fingerprints. Enable it in Settings → Credentials after credential verification. Automated tests simulate biometric/keychain APIs; real Touch ID hardware and prompts are not verified by hosted CI.
+
 ## Run
 
 Requires Node.js 22.12+ (Node.js 24 LTS recommended), npm, and the desktop libraries required by Electron. On Linux, an X11/Wayland desktop and GTK/NSS libraries are required.

@@ -573,12 +573,14 @@ export class VaultService {
         throw Error("Touch ID and an OS keychain are required.");
       this.throttle();
       let key: Buffer | undefined;
+      let written = false;
       try {
         key = await this.keyFor(c.credentials, this.envelope!);
         decrypt(this.envelope!, key);
         await systemPreferences.promptTouchID(
           "enable Vaultriad biometric unlock",
         );
+        this.assertActive();
         await atomicWrite(
           this.quickPath,
           safeStorage.encryptString(
@@ -588,7 +590,10 @@ export class VaultService {
             }),
           ),
         );
+        written = true;
+        this.assertActive();
       } catch {
+        if (written) await fs.unlink(this.quickPath).catch(() => {});
         this.failed();
         throw Error("Credentials or biometric verification failed.");
       } finally {

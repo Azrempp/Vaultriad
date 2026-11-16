@@ -1,0 +1,65 @@
+name: macOS DMG
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - name: Build universal macOS DMG
+        run: npx --no-install electron-builder --mac dmg --universal --publish never -c.mac.identity=-
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+      - name: Verify DMG and application bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          hdiutil verify release/Vaultriad.dmg
+          mount="$RUNNER_TEMP/vaultriad-dmg"
+          mkdir -p "$mount"
+          hdiutil attach -nobrowse -readonly -mountpoint "$mount" release/Vaultriad.dmg
+          trap 'hdiutil detach "$mount"' EXIT
+          codesign --verify --deep --strict --verbose=2 "$mount/Vaultriad.app"
+          architectures=$(lipo -archs "$mount/Vaultriad.app/Contents/MacOS/Vaultriad")
+          echo "Application architectures: $architectures"
+          [[ "$architectures" == *arm64* && "$architectures" == *x86_64* ]]
+          identifier=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$mount/Vaultriad.app/Contents/Info.plist")
+          [[ "$identifier" == com.vaultriad.app ]]
+          shasum -a 256 release/Vaultriad.dmg | sed 's|release/||' > release/SHA256SUMS-macOS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Vaultriad-macOS-universal
+          path: |
+            release/Vaultriad.dmg
+            release/SHA256SUMS-macOS.txt
+          if-no-files-found: error
+          retention-days: 14
+      - name: Publish downloadable preview DMG
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          version=$(node -p 'require("./package.json").version')
+          tag="v$version-macos-preview"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" release/Vaultriad.dmg release/SHA256SUMS-macOS.txt --clobber
+          else
+            gh release create "$tag" release/Vaultriad.dmg release/SHA256SUMS-macOS.txt \
+              --target "$GITHUB_SHA" --prerelease \
+              --title "Vaultriad $version for macOS — universal preview" \
+              --notes-file .github/macos-release.md
+          fi
