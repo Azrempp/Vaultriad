@@ -57,7 +57,11 @@ jobs:
           mkdir -p release/android
           if [[ -n "$ANDROID_KEYSTORE_PATH" ]]; then
             cp android/app/build/outputs/apk/release/app-release.apk release/android/Vaultriad.apk
-            "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs release/android/Vaultriad.apk
+            "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs release/android/Vaultriad.apk > "$RUNNER_TEMP/android-signature.txt"
+            actual=$(sed -n 's/^Signer #1 certificate SHA-256 digest: //p' "$RUNNER_TEMP/android-signature.txt")
+            expected=$(tr -d '\r\n' < android/SIGNING-CERT-SHA256.txt)
+            [[ "$actual" == "$expected" ]]
+            cp android/SIGNING-CERT-SHA256.txt release/android/SIGNING-CERT-SHA256.txt
           else
             cp android/app/build/outputs/apk/release/app-release-unsigned.apk release/android/Vaultriad-unsigned.apk
           fi
@@ -84,9 +88,9 @@ jobs:
           if [[ -f release/android/Vaultriad.apk ]]; then
             tag="v1.0.0-android-preview"
             if gh release view "$tag" >/dev/null 2>&1; then
-              gh release upload "$tag" release/android/Vaultriad.apk release/android/SHA256SUMS-Android.txt --clobber
+              gh release upload "$tag" release/android/Vaultriad.apk release/android/SHA256SUMS-Android.txt release/android/SIGNING-CERT-SHA256.txt --clobber
             else
-              gh release create "$tag" release/android/Vaultriad.apk release/android/SHA256SUMS-Android.txt --target "$GITHUB_SHA" --prerelease --title 'Vaultriad 1.0.0 for Android — preview' --notes-file .github/android-release.md
+              gh release create "$tag" release/android/Vaultriad.apk release/android/SHA256SUMS-Android.txt release/android/SIGNING-CERT-SHA256.txt --target "$GITHUB_SHA" --prerelease --title 'Vaultriad 1.0.0 for Android — preview' --notes-file .github/android-release.md
             fi
           else
             gh release create "android-build-$GITHUB_RUN_ID" release/android/Vaultriad-unsigned.apk release/android/SHA256SUMS-Android.txt --draft --target "$GITHUB_SHA" --title 'Android unsigned signing handoff — maintainer only' --notes 'Unsigned build for private local signing. Do not publish this draft or install the unsigned APK. Retain the private release key for future updates.'
