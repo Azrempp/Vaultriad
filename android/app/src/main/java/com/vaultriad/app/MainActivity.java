@@ -41,8 +41,9 @@ public final class MainActivity extends Activity {
   private int epoch = 0,
     failures = 0;
   private long retryAt = 0;
-  private String restoreRaw = null,
-    copied = null;
+  private String restoreRaw = null;
+  private byte[] copiedFingerprint;
+  private long clipboardExpires;
   private final Map<View, Boolean> enabledStates = new IdentityHashMap<>();
   private CancellationSignal biometricSignal;
   private Runnable clipboardClear;
@@ -171,7 +172,7 @@ public final class MainActivity extends Activity {
       biometricSignal = null;
     }
     main.removeCallbacks(inactivity);
-    clearClipboard();
+    if (show) clearClipboard();
     if (root != null) root.removeAllViews();
     if (show && initialized) gate();
   }
@@ -1242,39 +1243,72 @@ public final class MainActivity extends Activity {
     extras.putBoolean("android.content.extra.IS_SENSITIVE", true);
     clip.getDescription().setExtras(extras);
     clipboard.setPrimaryClip(clip);
-    copied = value;
+    forgetClipboardFingerprint();
+    copiedFingerprint = clipboardDigest(value);
     int seconds = vault
       .optJSONObject("preferences")
       .optInt("clipboardSeconds", 30);
+    clipboardExpires =
+      SystemClock.elapsedRealtime() +
+      Math.max(5, Math.min(120, seconds)) * 1000L;
     clipboardClear = this::clearClipboard;
     main.postDelayed(
       clipboardClear,
       Math.max(5, Math.min(120, seconds)) * 1000L
     );
     toast(
-      "Copied. Clipboard clears after " +
+      "Copied. Best-effort clear in " +
         seconds +
-        " seconds if it still contains this value."
+        " seconds. Android clipboard restrictions may retain copies."
     );
   }
 
-  private void clearClipboard() {
+  @Override
+  public void onWindowFocusChanged(boolean focused) {
+    super.onWindowFocusChanged(focused);
+    if (
+      focused &&
+      copiedFingerprint != null &&
+      SystemClock.elapsedRealtime() >= clipboardExpires
+    ) clearClipboard();
+  }
+
+  private byte[] clipboardDigest(CharSequence value) {
+    byte[] bytes = value.toString().getBytes(StandardCharsets.UTF_8);
+    try {
+      return MessageDigest.getInstance("SHA-256").digest(bytes);
+    } catch (GeneralSecurityException e) {
+      throw new IllegalStateException("SHA-256 unavailable");
+    } finally {
+      Arrays.fill(bytes, (byte) 0);
+    }
+  }
+
+  private void forgetClipboardFingerprint() {
     if (clipboardClear != null) main.removeCallbacks(clipboardClear);
-    String original = copied;
-    copied = null;
-    if (original == null) return;
+    if (copiedFingerprint != null) Arrays.fill(copiedFingerprint, (byte) 0);
+    copiedFingerprint = null;
+    clipboardExpires = 0;
+  }
+
+  private void clearClipboard() {
+    if (copiedFingerprint == null) return;
     try {
       ClipboardManager clipboard = (ClipboardManager) getSystemService(
         CLIPBOARD_SERVICE
       );
       ClipData clip = clipboard.getPrimaryClip();
-      if (
-        clip != null &&
-        clip.getItemCount() > 0 &&
-        original.contentEquals(clip.getItemAt(0).coerceToText(this))
-      ) clipboard.clearPrimaryClip();
+      if (clip == null || clip.getItemCount() == 0) {
+        if (hasWindowFocus()) forgetClipboardFingerprint();
+        return;
+      }
+      byte[] actual = clipboardDigest(clip.getItemAt(0).coerceToText(this));
+      boolean same = MessageDigest.isEqual(actual, copiedFingerprint);
+      Arrays.fill(actual, (byte) 0);
+      if (same) clipboard.clearPrimaryClip();
+      forgetClipboardFingerprint();
     } catch (Exception ignored) {
-      /* Background clipboard access is OS-restricted; no logging of copied data. */
+      /* Retry an expired fingerprint on foreground focus; never retain the copied plaintext. */
     }
   }
 

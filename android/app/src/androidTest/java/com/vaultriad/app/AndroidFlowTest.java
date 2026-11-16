@@ -27,6 +27,20 @@ public class AndroidFlowTest {
     );
   }
 
+  private void waitForView(ActivityScenario<MainActivity> scenario, int id) {
+    long deadline = android.os.SystemClock.uptimeMillis() + 25000;
+    java.util.concurrent.atomic.AtomicBoolean found =
+      new java.util.concurrent.atomic.AtomicBoolean();
+    do {
+      scenario.onActivity(activity ->
+        found.set(activity.findViewById(id) != null)
+      );
+      if (found.get()) return;
+      android.os.SystemClock.sleep(100);
+    } while (android.os.SystemClock.uptimeMillis() < deadline);
+    fail("Timed out waiting for a native view");
+  }
+
   private void tap(String text) {
     onView(withText(text)).perform(scrollTo(), click());
   }
@@ -81,7 +95,7 @@ public class AndroidFlowTest {
         closeSoftKeyboard()
       );
       tap("Save entry");
-      waitFor("Save as Pending");
+      waitForView(scenario, R.id.secret);
       String secret = "Zz9!qwe-rt9!qwe";
       onView(withId(R.id.secret)).perform(
         scrollTo(),
@@ -99,8 +113,25 @@ public class AndroidFlowTest {
       waitFor("Reveal / hide Current secret");
       tap("Reveal / hide Current secret");
       onView(withText(secret)).check(matches(isDisplayed()));
-      tap("Lock vault");
+      tap("Copy Current secret");
+      scenario.moveToState(androidx.lifecycle.Lifecycle.State.CREATED);
+      scenario.moveToState(androidx.lifecycle.Lifecycle.State.RESUMED);
       waitFor("Unlock vault");
+      scenario.onActivity(activity -> {
+        android.content.ClipboardManager clipboard =
+          (android.content.ClipboardManager) activity.getSystemService(
+            Context.CLIPBOARD_SERVICE
+          );
+        assertNotNull(clipboard.getPrimaryClip());
+        assertEquals(
+          secret,
+          clipboard
+            .getPrimaryClip()
+            .getItemAt(0)
+            .coerceToText(activity)
+            .toString()
+        );
+      });
       onView(withId(R.id.password)).perform(
         scrollTo(),
         replaceText("synthetic Android master password!"),
