@@ -98,15 +98,27 @@ public final class MainActivity extends Activity {
   protected void onStart() {
     super.onStart();
     active = true;
-    if (initialized && vault == null) gate();
-    else if (!initialized && !busy) task(
-      () -> files.exists() ? VaultCrypto.inspect(files.read()) : null,
-      h -> {
-        header = h;
-        initialized = true;
+  }
+
+  @Override
+  protected void onResume() {
+    super.onResume();
+    if (vault == null && !busy) {
+      if (restoreRaw != null) {
         gate();
+        return;
       }
-    );
+      screen("Vaultriad");
+      note("Loading locked vault settings…");
+      task(
+        () -> files.exists() ? VaultCrypto.inspect(files.read()) : null,
+        h -> {
+          header = h;
+          initialized = true;
+          gate();
+        }
+      );
+    }
   }
 
   @Override

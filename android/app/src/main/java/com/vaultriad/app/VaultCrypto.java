@@ -236,9 +236,12 @@ public final class VaultCrypto {
     String salt
   ) throws Exception {
     byte[] plain = vault.toString().getBytes(StandardCharsets.UTF_8);
-    if (plain.length > 20 * 1024 * 1024) throw new VaultException(
-      "Vault exceeds the mobile size limit. No changes were saved."
-    );
+    if (plain.length > 20 * 1024 * 1024) {
+      Arrays.fill(plain, (byte) 0);
+      throw new VaultException(
+        "Vault exceeds the mobile size limit. No changes were saved."
+      );
+    }
     try {
       JSONObject body = new JSONObject();
       body.put("magic", "VAULTRIAD");
