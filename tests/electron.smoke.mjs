@@ -1,11 +1,21 @@
 import { _electron as electron } from "playwright";
 import assert from "node:assert/strict";
-import { mkdtemp, rm, mkdir, readFile, readdir } from "node:fs/promises";
+import {
+  mkdtemp,
+  rm,
+  mkdir,
+  readFile,
+  readdir,
+  realpath,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 const temporary = await mkdtemp(join(tmpdir(), "vaultriad-electron-"));
+const userData = join(temporary, "data");
+await mkdir(userData);
 const executablePath = process.env.VAULTRIAD_TEST_EXECUTABLE;
 const args = executablePath ? [] : [resolve(".")];
+args.unshift(`--user-data-dir=${userData}`);
 // Restricted containers cannot install a setuid helper. Never used by npm run dev/dist.
 if (process.env.VAULTRIAD_TEST_NO_SANDBOX === "1")
   args.unshift("--no-sandbox", "--disable-gpu");
@@ -22,6 +32,14 @@ try {
     timeout: 30000,
   });
   const page = await app.firstWindow();
+  const actualUserData = await app.evaluate(({ app }) =>
+    app.getPath("userData"),
+  );
+  assert.equal(
+    await realpath(actualUserData),
+    await realpath(userData),
+    "Refusing to automate a vault outside the isolated test directory.",
+  );
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.getByRole("heading", { name: "Make it yours." }).waitFor();
