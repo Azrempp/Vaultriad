@@ -1,0 +1,90 @@
+{
+  "name": "vaultriad",
+  "version": "1.0.0",
+  "description": "A local-first encrypted desktop password vault",
+  "main": "out/main/index.js",
+  "author": "Vaultriad",
+  "license": "MIT",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "npm run typecheck && electron-vite build",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "dist": "npm run build && electron-builder",
+    "dist:dir": "npm run build && electron-builder --dir",
+    "format": "prettier --write \"src/**/*.{ts,tsx,css,html}\" \"tests/**/*.ts\" \"*.{ts,js,json}\"",
+    "test:desktop": "npm run build && node tests/electron.smoke.mjs",
+    "postinstall": "node node_modules/electron/install.js"
+  },
+  "dependencies": {
+    "hash-wasm": "^4.12.0",
+    "lucide-react": "^0.468.0",
+    "papaparse": "^5.5.3",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "@types/papaparse": "^5.3.16",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "@vitejs/plugin-react": "^4.4.1",
+    "autoprefixer": "^10.4.21",
+    "electron": "^45.3.2",
+    "electron-builder": "^26.0.12",
+    "electron-vite": "^3.1.0",
+    "playwright": "^1.65.1",
+    "postcss": "^8.5.3",
+    "prettier": "^3.6.2",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5",
+    "vitest": "^5.1.0"
+  },
+  "build": {
+    "appId": "com.vaultriad.app",
+    "productName": "Vaultriad",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "out/**/*",
+      "assets/**/*",
+      "package.json"
+    ],
+    "asar": true,
+    "artifactName": "Vaultriad.${ext}",
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "Utility",
+      "icon": "assets/icon.png",
+      "syncDesktopName": true
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "assets/icon.png",
+      "artifactName": "Vaultriad-Setup.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "icon": "assets/icon.png",
+      "category": "public.app-category.utilities",
+      "hardenedRuntime": true
+    }
+  },
+  "desktopName": "com.vaultriad.app.desktop",
+  "overrides": {
+    "minimatch@>=7 <11.0.1": "^11.0.8"
+  }
+}

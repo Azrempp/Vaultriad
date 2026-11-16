@@ -1,0 +1,34 @@
+name: Windows installer
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - run: npx --no-install electron-builder --win nsis --x64 --publish never
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      - name: Checksum
+        shell: pwsh
+        run: |
+          $hash = (Get-FileHash release/Vaultriad-Setup.exe -Algorithm SHA256).Hash.ToLower()
+          "$hash  Vaultriad-Setup.exe" | Out-File release/SHA256SUMS.txt -Encoding ascii
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Vaultriad-Windows-x64
+          path: |
+            release/Vaultriad-Setup.exe
+            release/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 14
