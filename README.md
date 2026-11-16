@@ -15,7 +15,20 @@ You can use, inspect, modify, fork and redistribute Vaultriad under the [MIT lic
 
 The app's MIT license is bundled with installers as `resources/LICENSE-Vaultriad.txt`.
 
-## macOS download
+## Downloads
+
+| Platform | Installer | Release |
+| --- | --- | --- |
+| Windows x64 (Intel / AMD) | [Vaultriad-Setup.exe](https://github.com/Azrempp/Vaultriad/releases/download/v1.0.0-windows-preview/Vaultriad-Setup.exe) | [Windows preview](https://github.com/Azrempp/Vaultriad/releases/tag/v1.0.0-windows-preview) |
+| macOS (Apple silicon + Intel) | [Vaultriad.dmg](https://github.com/Azrempp/Vaultriad/releases/download/v1.0.0-macos-preview/Vaultriad.dmg) | [macOS preview](https://github.com/Azrempp/Vaultriad/releases/tag/v1.0.0-macos-preview) |
+
+Release assets include SHA-256 checksums. Installers are also retained temporarily as Actions artifacts; the release links above do not have that 14-day artifact expiry.
+
+### Windows
+
+Download and run **Vaultriad-Setup.exe**. This is the Windows x64 build for Intel/AMD 64-bit PCs. It is unsigned, so Windows may display an unknown-publisher warning. The **Windows installer** workflow builds/tests on Windows, verifies PE headers, the app's x64 architecture and bundled MIT license, then publishes the installer and checksum to GitHub Releases. Touch ID is macOS-only; Windows uses the configured credential groups.
+
+### macOS
 
 Download [Vaultriad.dmg](https://github.com/Azrempp/Vaultriad/releases/download/v1.0.0-macos-preview/Vaultriad.dmg) from the [macOS preview release](https://github.com/Azrempp/Vaultriad/releases/tag/v1.0.0-macos-preview). The universal app supports Apple silicon and Intel Macs. Open the DMG and drag Vaultriad to Applications. The release includes a SHA-256 checksum.
 

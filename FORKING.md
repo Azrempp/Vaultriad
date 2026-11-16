@@ -26,10 +26,12 @@ This creates an **ad-hoc-signed preview**, not an Apple Developer ID/notarized d
 
 GitHub Actions workflows are manual (`workflow_dispatch`). In your fork, enable Actions and review the workflows before running them:
 
-- **Windows installer** builds/tests Windows x64 and provides a temporary Actions artifact.
+- **Windows installer** builds/tests Windows x64, verifies the installer, architecture and license, and creates or updates a `vVERSION-windows-preview` prerelease in the repository running it.
 - **macOS DMG** builds/tests a universal Mac app, verifies its disk image, signature and architectures, then creates or updates a `vVERSION-macos-preview` prerelease **in the repository running the workflow**. The publication step uses the repository-scoped `GITHUB_TOKEN` with contents-write permission. On a public fork, its release and assets are public.
 
-The macOS workflow's output is `Vaultriad.dmg` with `SHA256SUMS-macOS.txt`. The checksum detects changed downloads; it does not establish a trusted publisher or replace a code signature. Keep the MIT license in your distributed installers; this project's electron-builder configuration explicitly bundles it in resources/LICENSE-Vaultriad.txt.
+Both publishing workflows use a repository-scoped `GITHUB_TOKEN` with contents-write permission. On public forks their releases and assets are public.
+
+The Windows workflow publishes `Vaultriad-Setup.exe` with `SHA256SUMS-Windows-x64.txt`. The macOS workflow's output is `Vaultriad.dmg` with `SHA256SUMS-macOS.txt`. The checksum detects changed downloads; it does not establish a trusted publisher or replace a code signature. Keep the MIT license in your distributed installers; this project's electron-builder configuration explicitly bundles it in resources/LICENSE-Vaultriad.txt.
 
 ## Branding and vault compatibility
 

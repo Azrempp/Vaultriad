@@ -7,28 +7,65 @@ jobs:
   build:
     runs-on: windows-latest
     timeout-minutes: 20
+    permissions:
+      contents: write
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
-          node-version: '24'
+          node-version: "24"
           cache: npm
       - run: npm ci
       - run: npm test
       - run: npm run build
       - run: npx --no-install electron-builder --win nsis --x64 --publish never
         env:
-          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
-      - name: Checksum
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+      - name: Verify installer, x64 app, and MIT license
         shell: pwsh
         run: |
+          $ErrorActionPreference = 'Stop'
+          function Read-PeMachine([string] $path) {
+            $reader = [IO.BinaryReader]::new([IO.File]::OpenRead((Resolve-Path $path).Path))
+            try {
+              if ($reader.ReadUInt16() -ne 0x5a4d) { throw "Invalid MZ header: $path" }
+              $reader.BaseStream.Position = 0x3c
+              $offset = $reader.ReadUInt32()
+              $reader.BaseStream.Position = $offset
+              if ($reader.ReadUInt32() -ne 0x4550) { throw "Invalid PE header: $path" }
+              return $reader.ReadUInt16()
+            } finally { $reader.Dispose() }
+          }
+          $null = Read-PeMachine 'release/Vaultriad-Setup.exe'
+          if ((Get-Item release/Vaultriad-Setup.exe).Length -lt 10MB) { throw 'Installer is unexpectedly small' }
+          if ((Read-PeMachine 'release/win-unpacked/Vaultriad.exe') -ne 0x8664) { throw 'Application is not Windows x64' }
+          $source = (Get-FileHash LICENSE -Algorithm SHA256).Hash
+          $bundled = (Get-FileHash release/win-unpacked/resources/LICENSE-Vaultriad.txt -Algorithm SHA256).Hash
+          if ($source -ne $bundled) { throw 'Bundled MIT license does not match source' }
           $hash = (Get-FileHash release/Vaultriad-Setup.exe -Algorithm SHA256).Hash.ToLower()
-          "$hash  Vaultriad-Setup.exe" | Out-File release/SHA256SUMS.txt -Encoding ascii
+          "$hash  Vaultriad-Setup.exe" | Out-File release/SHA256SUMS-Windows-x64.txt -Encoding ascii
       - uses: actions/upload-artifact@v4
         with:
           name: Vaultriad-Windows-x64
           path: |
             release/Vaultriad-Setup.exe
-            release/SHA256SUMS.txt
+            release/SHA256SUMS-Windows-x64.txt
           if-no-files-found: error
           retention-days: 14
+      - name: Publish downloadable Windows x64 installer
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          $tag = "v$version-windows-preview"
+          $assets = @('release/Vaultriad-Setup.exe', 'release/SHA256SUMS-Windows-x64.txt')
+          gh release view $tag *> $null
+          if ($LASTEXITCODE -eq 0) {
+            gh release upload $tag @assets --clobber
+          } else {
+            gh release create $tag @assets --target $env:GITHUB_SHA --prerelease --title "Vaultriad $version for Windows x64 — preview" --notes-file .github/windows-release.md
+          }
+          if ($LASTEXITCODE -ne 0) { throw 'Windows release publication failed' }
