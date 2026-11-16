@@ -81,10 +81,24 @@
       "icon": "assets/icon.png",
       "category": "public.app-category.utilities",
       "hardenedRuntime": true
-    }
+    },
+    "extraResources": [
+      {
+        "from": "LICENSE",
+        "to": "LICENSE-Vaultriad.txt"
+      }
+    ]
   },
   "desktopName": "com.vaultriad.app.desktop",
   "overrides": {
     "minimatch@>=7 <11.0.1": "^11.0.8"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Azrempp/Vaultriad.git"
+  },
+  "homepage": "https://github.com/Azrempp/Vaultriad#readme",
+  "bugs": {
+    "url": "https://github.com/Azrempp/Vaultriad/issues"
   }
 }

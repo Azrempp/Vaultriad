@@ -32,6 +32,7 @@ jobs:
           hdiutil attach -nobrowse -readonly -mountpoint "$mount" release/Vaultriad.dmg
           trap 'hdiutil detach "$mount"' EXIT
           codesign --verify --deep --strict --verbose=2 "$mount/Vaultriad.app"
+          cmp LICENSE "$mount/Vaultriad.app/Contents/Resources/LICENSE-Vaultriad.txt"
           architectures=$(lipo -archs "$mount/Vaultriad.app/Contents/MacOS/Vaultriad")
           echo "Application architectures: $architectures"
           [[ "$architectures" == *arm64* && "$architectures" == *x86_64* ]]

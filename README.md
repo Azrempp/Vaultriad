@@ -1,6 +1,19 @@
 # Vaultriad
 
+**Free and open source · MIT licensed · Local first · Forks welcome**
+
 A local-first desktop password manager for hardware, online accounts, and API keys. Vaultriad keeps a single encrypted vault on your device and makes password changes a deliberate two-step process: **Pending → “It worked, make it Current.”** The previous Current moves to Past only after confirmation.
+
+## Free and open source
+
+You can use, inspect, modify, fork and redistribute Vaultriad under the [MIT license](LICENSE), including commercially, while keeping the required license notices. There are no paid vault features, mandatory online accounts or hosted backend. Dependencies keep their own licenses; public source does not mean the app has passed an independent security audit.
+
+- [Fork this project](https://github.com/Azrempp/Vaultriad/fork)
+- [Build and distribute a fork](FORKING.md)
+- [Contribute changes](CONTRIBUTING.md)
+- [Report security issues privately](SECURITY.md)
+
+The app's MIT license is bundled with installers as `resources/LICENSE-Vaultriad.txt`.
 
 ## macOS download
 
